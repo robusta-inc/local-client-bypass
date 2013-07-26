@@ -7,23 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public enum AccessPolicy {
-    LOCAL_HOST_POLICY {
-        @Override
-        boolean allowed(HttpServletRequest request) {
-            return new ClientIpRequest(request).isLocal();
-        }
-    }, SAME_HOST_POLICY {
-        @Override
-        boolean allowed(HttpServletRequest request) {
-            return new ClientIpRequest(request).isSameHost(SERVER_IP_ADDRESS);
-        }
-    }, AUTH_COOKIE_POLICY {
-        @Override
-        boolean allowed(HttpServletRequest request) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-    };
+public abstract class AccessPolicy {
+
     public static final String SERVER_IP_DETERMINATION_FAILURE = "SERVER_IP_DETERMINATION_FAILURE";
     private static final String SERVER_IP_ADDRESS = serverIpAddress();
     private static final Logger LOGGER = LoggerFactory.getLogger(AccessPolicy.class);
@@ -37,5 +22,26 @@ public enum AccessPolicy {
             LOGGER.error("Unable to determine the server machine's IP address, SAME_HOST_POLICY will not work.", e);
         }
         return SERVER_IP_DETERMINATION_FAILURE;
+    }
+
+    public static class AccessPolicies {
+        AccessPolicy LOCAL_HOST_POLICY = new AccessPolicy() {
+            @Override
+            boolean allowed(HttpServletRequest request) {
+                return new ClientIpRequest(request).isLocal();
+            }
+        };
+        AccessPolicy SAME_HOST_POLICY = new AccessPolicy() {
+            @Override
+            boolean allowed(HttpServletRequest request) {
+                return new ClientIpRequest(request).isSameHost(SERVER_IP_ADDRESS);
+            }
+        };
+        AccessPolicy AUTH_COOKIE_POLICY = new AccessPolicy() {
+            @Override
+            boolean allowed(HttpServletRequest request) {
+                return false;
+            }
+        };
     }
 }
